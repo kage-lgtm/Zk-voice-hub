@@ -15,8 +15,8 @@
         
         <!-- Tab Switcher (Sign In / Sign Up) -->
         <div class="flex bg-gray-950 p-1 rounded-xl mb-6 border border-gray-800">
-            <button id="tab-signin" onclick="switchTab('signin')" class="flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-red-600 text-white shadow-md">Sign In</button>
-            <button id="tab-signup" onclick="switchTab('signup')" class="flex-1 py-2 text-sm font-medium rounded-lg transition-all text-gray-400 hover:text-white">Sign Up</button>
+            <button type="button" id="tab-signin" class="flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-red-600 text-white shadow-md">Sign In</button>
+            <button type="button" id="tab-signup" class="flex-1 py-2 text-sm font-medium rounded-lg transition-all text-gray-400 hover:text-white">Sign Up</button>
         </div>
 
         <!-- Header -->
@@ -45,11 +45,11 @@
             </div>
 
             <div id="signin-options" class="flex items-center justify-between text-xs text-gray-400">
-                <label class="flex items-center">
+                <label class="flex items-center cursor-pointer">
                     <input type="checkbox" class="rounded bg-gray-950 border-gray-700 text-red-600 focus:ring-0 mr-1.5">
                     Remember Me
                 </label>
-                <a href="#" class="text-red-500 hover:underline">Forgot password?</a>
+                <a href="#forgot" id="forgot-link" class="text-red-500 hover:underline">Forgot password?</a>
             </div>
 
             <button type="submit" id="submit-btn"
@@ -66,7 +66,7 @@
         </div>
 
         <!-- Google Sign-In Button -->
-        <button id="google-login-btn" 
+        <button type="button" id="google-login-btn" 
             class="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition duration-200 flex items-center justify-center space-x-2 text-sm shadow-md">
             <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
                 <path d="M12.24 10.285V14.2h6.806c-.275 1.765-2.056 5.174-6.806 5.174-4.095 0-7.439-3.389-7.439-7.574s3.344-7.574 7.439-7.574c2.33 0 3.891.989 4.785 1.849l3.254-3.138C18.189 1.186 15.479 0 12.24 0 5.48 0 0 5.48 0 12.24s5.48 12.24 12.24 12.24c7.057 0 11.733-4.962 11.733-11.969 0-.829-.082-1.462-.18-2.226H12.24z"/>
@@ -86,42 +86,62 @@
 
     </div>
 
-    <!-- Supabase Logic & Animation Script -->
+    <!-- Supabase Logic & Event Listeners Script -->
     <script>
         const SUPABASE_URL = 'https://nveowfitvoligqecxofr.supabase.co';
-        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // <--- Yahan apni Supabase ki anon public key paste kar dena bhai
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // Yahan apni Supabase anon key paste karein
         
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let currentMode = 'signin'; // 'signin' or 'signup'
+        let currentMode = 'signin';
 
-        function switchTab(mode) {
-            currentMode = mode;
-            const signinBtn = document.getElementById('tab-signin');
-            const signupBtn = document.getElementById('tab-signup');
-            const title = document.getElementById('form-title');
-            const subtitle = document.getElementById('form-subtitle');
-            const submitBtn = document.getElementById('submit-btn');
-            const signinOptions = document.getElementById('signin-options');
-            
+        const signinTab = document.getElementById('tab-signin');
+        const signupTab = document.getElementById('tab-signup');
+        const title = document.getElementById('form-title');
+        const subtitle = document.getElementById('form-subtitle');
+        const submitBtn = document.getElementById('submit-btn');
+        const signinOptions = document.getElementById('signin-options');
+
+        // Tab Switching Event Listeners
+        signinTab.addEventListener('click', () => {
+            currentMode = 'signin';
+            signinTab.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-red-600 text-white shadow-md";
+            signupTab.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all text-gray-400 hover:text-white";
+            title.textContent = "Welcome Back";
+            subtitle.textContent = "Sign in to your ZK Voice Hub account";
+            submitBtn.textContent = "Sign In";
+            signinOptions.classList.remove('hidden');
             hideMessage();
+        });
 
-            if (mode === 'signin') {
-                signinBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-red-600 text-white shadow-md";
-                signupBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all text-gray-400 hover:text-white";
-                title.textContent = "Welcome Back";
-                subtitle.textContent = "Sign in to your ZK Voice Hub account";
-                submitBtn.textContent = "Sign In";
-                signinOptions.classList.remove('hidden');
-            } else {
-                signupBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-red-600 text-white shadow-md";
-                signinBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all text-gray-400 hover:text-white";
-                title.textContent = "Create Account";
-                subtitle.textContent = "Join ZK Voice Hub to stream anime";
-                submitBtn.textContent = "Sign Up";
-                signinOptions.classList.add('hidden');
+        signupTab.addEventListener('click', () => {
+            currentMode = 'signup';
+            signupTab.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-red-600 text-white shadow-md";
+            signinTab.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all text-gray-400 hover:text-white";
+            title.textContent = "Create Account";
+            subtitle.textContent = "Join ZK Voice Hub to stream anime";
+            submitBtn.textContent = "Sign Up";
+            signinOptions.classList.add('hidden');
+            hideMessage();
+        });
+
+        // Forgot Password Action
+        document.getElementById('forgot-link').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            if (!email) {
+                showMessage('Please enter your email address first.', 'error');
+                return;
             }
-        }
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin
+            });
+            if (error) {
+                showMessage(error.message, 'error');
+            } else {
+                showMessage('Password reset link sent to your email!', 'success');
+            }
+        });
 
         // Google Login
         document.getElementById('google-login-btn').addEventListener('click', async () => {
@@ -150,12 +170,11 @@
                 if (error) {
                     showMessage(error.message, 'error');
                 } else {
-                    showMessage('Sign up successful! Please check your email or log in.', 'success');
+                    showMessage('Sign up successful! Please check your email to confirm.', 'success');
                 }
             }
         });
 
-        // Check Admin & Redirect
         async function checkUserAndRedirect() {
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
@@ -165,9 +184,9 @@
 
         function handleRedirect(email) {
             if (email === 'atrinandansarkate@gmail.com' || email === 'zkdubbingstudio@gmail.com') {
-                window.location.href = '/admin.html'; // Admin Panel
+                window.location.href = '/admin.html';
             } else {
-                window.location.href = '/index.html'; // Home / Streaming Page
+                window.location.href = '/index.html';
             }
         }
 
@@ -182,7 +201,6 @@
             document.getElementById('message-box').classList.add('hidden');
         }
 
-        // Check session on page load
         checkUserAndRedirect();
     </script>
 </body>
