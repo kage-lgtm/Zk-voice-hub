@@ -1,585 +1,189 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZK Voice Hub - Anime in Hindi Dubbed</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Supabase JS Client -->
+    <title>Authentication - ZK Voice Hub</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-        body {
-            background-color: #0b0f19;
-            color: #ffffff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Auth Screen */
-        #authView {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            padding: 20px;
-        }
-        .auth-card {
-            background: #151b2b;
-            padding: 35px 25px;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 400px;
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-            text-align: center;
-        }
-        .auth-card h2 {
-            font-size: 22px;
-            margin-bottom: 6px;
-            color: #4facfe;
-        }
-        .auth-card p {
-            font-size: 12px;
-            color: #8a99ad;
-            margin-bottom: 30px;
-        }
-        
-        /* Google Login Button */
-        .google-btn {
-            width: 100%;
-            background: #ffffff;
-            color: #333333;
-            border: none;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            transition: background 0.2s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        .google-btn:hover {
-            background: #f1f1f1;
-        }
-        .google-btn img {
-            width: 18px;
-            height: 18px;
-        }
-
-        /* App Container */
-        .app-container {
-            display: none;
-            flex-direction: column;
-            flex: 1;
-        }
-        .app-container.active {
-            display: flex;
-        }
-
-        /* Header */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            background: rgba(11, 15, 25, 0.95);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-        }
-        .logo-img {
-            width: 35px;
-            height: 35px;
-            background: linear-gradient(135deg, #00f2fe, #4facfe);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            color: #000;
-        }
-        .logo-text h1 {
-            font-size: 16px;
-            font-weight: 700;
-        }
-        .logo-text p {
-            font-size: 9px;
-            color: #8a99ad;
-        }
-        .header-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        .admin-badge-btn {
-            background: rgba(0, 242, 254, 0.15);
-            color: #00f2fe;
-            border: 1px solid rgba(0, 242, 254, 0.3);
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            display: none;
-        }
-        .logout-btn {
-            background: rgba(255,82,82,0.15);
-            color: #ff5252;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* Views */
-        .view {
-            display: none;
-            flex: 1;
-            padding-bottom: 40px;
-        }
-        .view.active {
-            display: block;
-        }
-
-        /* Home & Grid Styles */
-        .hero-banner {
-            padding: 20px;
-            text-align: center;
-            background: linear-gradient(180deg, rgba(79,172,254,0.1) 0%, transparent 100%);
-        }
-        .hero-banner h2 {
-            font-size: 24px;
-            color: #4facfe;
-            margin-bottom: 5px;
-        }
-        .hero-banner p {
-            font-size: 12px;
-            color: #8a99ad;
-        }
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-            margin: 20px 0 12px 0;
-        }
-        .section-header h3 {
-            font-size: 16px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .section-header h3 i {
-            color: #4facfe;
-        }
-        .anime-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            padding: 0 20px;
-        }
-        @media(min-width: 768px) {
-            .anime-grid { grid-template-columns: repeat(4, 1fr); }
-        }
-        .anime-card {
-            background: #151b2b;
-            border-radius: 12px;
-            overflow: hidden;
-            cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.03);
-            transition: transform 0.2s;
-        }
-        .anime-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(0, 242, 254, 0.3);
-        }
-        .card-thumb {
-            position: relative;
-            width: 100%;
-            height: 160px;
-            background: #252d42;
-        }
-        .card-thumb img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .badge {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            background: rgba(0, 242, 254, 0.85);
-            color: #000;
-            font-size: 9px;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        .card-info {
-            padding: 10px;
-        }
-        .card-info h4 {
-            font-size: 12px;
-            font-weight: 600;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        /* Watch View */
-        #watchView {
-            padding: 20px;
-        }
-        .back-btn {
-            background: rgba(255,255,255,0.05);
-            color: #fff;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 12px;
-            cursor: pointer;
-            margin-bottom: 15px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .player-container {
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            background: #000;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 15px;
-        }
-        .player-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        .watch-details h2 {
-            font-size: 18px;
-            color: #fff;
-            margin-bottom: 6px;
-        }
-        .watch-details p {
-            font-size: 12px;
-            color: #8a99ad;
-        }
-
-        /* Admin Panel Styles */
-        .admin-panel-card {
-            background: #151b2b;
-            margin: 20px;
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .admin-panel-card h3 {
-            color: #00f2fe;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-        .form-group label {
-            display: block;
-            font-size: 12px;
-            color: #8a99ad;
-            margin-bottom: 6px;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            background: #0b0f19;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 14px;
-            outline: none;
-        }
-        .auth-btn {
-            width: 100%;
-            background: linear-gradient(135deg, #00f2fe, #4facfe);
-            color: #0b0f19;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        footer {
-            margin-top: auto;
-            text-align: center;
-            padding: 20px;
-            font-size: 11px;
-            color: #6c7a9c;
-            border-top: 1px solid rgba(255,255,255,0.03);
-        }
-    </style>
 </head>
-<body>
+<body class="bg-gray-950 text-white flex items-center justify-center min-h-screen">
 
-    <!-- 1. AUTHENTICATION VIEW (Google Login) -->
-    <div id="authView">
-        <div class="auth-card">
-            <h2>Welcome to ZK Voice Hub</h2>
-            <p>Sign in with your Google account to watch anime</p>
-            
-            <button class="google-btn" onclick="signInWithGoogle()">
-                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo">
-                Continue with Google
-            </button>
-        </div>
-    </div>
-
-    <!-- 2. MAIN APP CONTAINER -->
-    <div id="appContainer" class="app-container">
-        <!-- Header -->
-        <header>
-            <div class="logo-container" onclick="showHome()">
-                <div class="logo-img">ZK</div>
-                <div class="logo-text">
-                    <h1>ZK Voice Hub</h1>
-                    <p>PRESENTING BY: ZK DUBBING STUDIO</p>
-                </div>
-            </div>
-            <div class="header-actions">
-                <button id="adminBtn" class="admin-badge-btn" onclick="showAdminPanel()">
-                    <i class="fa-solid fa-shield-halved"></i> Admin Panel
-                </button>
-                <button class="logout-btn" onclick="handleLogout()">
-                    <i class="fa-solid fa-right-from-bracket"></i> Logout
-                </button>
-            </div>
-        </header>
-
-        <!-- Home View -->
-        <div id="homeView" class="view active">
-            <div class="hero-banner">
-                <h2>Anime in Hindi Dubbed</h2>
-                <p>480P, 720P & 1080P • High Quality Fan Dubs</p>
-            </div>
-            <div class="section-header">
-                <h3><i class="fa-solid fa-fire"></i> Trending Now</h3>
-            </div>
-            <div class="anime-grid" id="animeGrid"></div>
-        </div>
-
-        <!-- Watch View -->
-        <div id="watchView" class="view">
-            <button class="back-btn" onclick="showHome()"><i class="fa-solid fa-arrow-left"></i> Back to Home</button>
-            <div class="player-container">
-                <iframe id="videoIframe" src="" allowfullscreen></iframe>
-            </div>
-            <div class="watch-details">
-                <h2 id="watchTitle">Anime Title</h2>
-                <p id="watchInfo">Hindi Fan Dub • Multi-Resolution Support</p>
-            </div>
-        </div>
-
-        <!-- Admin Panel View -->
-        <div id="adminView" class="view">
-            <div class="admin-panel-card">
-                <h3><i class="fa-solid fa-lock"></i> Secure Admin Control Panel</h3>
-                <p style="font-size: 12px; color: #8a99ad; margin-bottom: 15px;">
-                    Yahan naya anime episode add karein.
-                </p>
-                <div class="form-group">
-                    <label>Anime Title</label>
-                    <input type="text" id="adminTitle" placeholder="Anime Name in Hindi">
-                </div>
-                <div class="form-group">
-                    <label>Poster Image URL</label>
-                    <input type="text" id="adminImage" placeholder="Image link">
-                </div>
-                <div class="form-group">
-                    <label>Video Embed URL (Filemoon / VDOhide)</label>
-                    <input type="text" id="adminVideoUrl" placeholder="https://filemoon.sx/e/...">
-                </div>
-                <button class="auth-btn" onclick="addNewAnime()">Publish Anime</button>
-            </div>
-        </div>
-
-        <footer>
-            ZK Voice Hub &copy; 2026 Presented by ZK Dubbing Studio
-        </footer>
-    </div>
-
-    <script>
-        // Supabase Initialization
-        const SUPABASE_URL = "https://rwioavitlgzyrbgivwzi.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_kecwr9BW3V2UnM4TpruFfQ_S6C7Qsys";
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        // Aapke dono official Admin Emails
-        const ADMIN_EMAILS = [
-            "atrinandansarkate@gmail.com",
-            "zkdubbingstudio@gmail.com"
-        ];
-
-        // Check active session on load
-        async function checkUserSession() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                validateAndOpenApp(session.user.email);
-            } else {
-                showAuth();
-            }
-        }
-        checkUserSession();
-
-        function showAuth() {
-            document.getElementById('authView').style.display = 'flex';
-            document.getElementById('appContainer').classList.remove('active');
-        }
-
-        // Google Sign-In Trigger Function
-        async function signInWithGoogle() {
-            const { error } = await supabaseClient.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: window.location.origin
-                }
-            });
-            if (error) {
-                alert("Google Login Error: " + error.message);
-            }
-        }
-
-        function validateAndOpenApp(userEmail) {
-            document.getElementById('authView').style.display = 'none';
-            document.getElementById('appContainer').classList.add('active');
-            
-            const adminBtn = document.getElementById('adminBtn');
-            if (ADMIN_EMAILS.includes(userEmail)) {
-                adminBtn.style.display = 'inline-block'; // Sirf in dono emails ko Admin Panel dikhega
-            } else {
-                adminBtn.style.display = 'none';
-            }
-
-            renderAnimeGrid();
-        }
-
-        async function handleLogout() {
-            await supabaseClient.auth.signOut();
-            showAuth();
-        }
-
-        const SUPABASE_STORAGE_URL = `${SUPABASE_URL}/storage/v1/object/public/anime-posters/`;
+    <div class="bg-gray-900 border border-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md mx-4 transition-all duration-300">
         
-        let animeData = [
-            {
-                id: 1,
-                title: "The Duke's Son Claims He Won't Love Me Yet Showers Me With Adoration",
-                badge: "Hindi Dub",
-                image: SUPABASE_STORAGE_URL + "duke-son.jpg",
-                videoUrl: "https://filemoon.sx/e/sample_embed_link_1"
-            },
-            {
-                id: 2,
-                title: "I Want to End This Love Game",
-                badge: "Hindi Dub",
-                image: SUPABASE_STORAGE_URL + "love-game.jpg",
-                videoUrl: "https://filemoon.sx/e/sample_embed_link_2"
-            }
-        ];
+        <!-- Tab Switcher (Sign In / Sign Up) -->
+        <div class="flex bg-gray-950 p-1 rounded-xl mb-6 border border-gray-800">
+            <button id="tab-signin" onclick="switchTab('signin')" class="flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-red-600 text-white shadow-md">Sign In</button>
+            <button id="tab-signup" onclick="switchTab('signup')" class="flex-1 py-2 text-sm font-medium rounded-lg transition-all text-gray-400 hover:text-white">Sign Up</button>
+        </div>
 
-        function renderAnimeGrid() {
-            const grid = document.getElementById('animeGrid');
-            grid.innerHTML = '';
-            animeData.forEach((anime, index) => {
-                grid.innerHTML += `
-                    <div class="anime-card" onclick="playAnime(${index})">
-                        <div class="card-thumb">
-                            <span class="badge">${anime.badge}</span>
-                            <img src="${anime.image}" onerror="this.src='https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&auto=format&fit=crop&q=60'">
-                        </div>
-                        <div class="card-info">
-                            <h4>${anime.title}</h4>
-                        </div>
-                    </div>
-                `;
-            });
-        }
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 id="form-title" class="text-2xl font-bold tracking-tight text-white mb-1">Welcome Back</h1>
+            <p id="form-subtitle" class="text-gray-400 text-xs">Sign in to your ZK Voice Hub account</p>
+        </div>
 
-        function playAnime(index) {
-            const anime = animeData[index];
-            document.getElementById('watchTitle').innerText = anime.title;
-            document.getElementById('videoIframe').src = anime.videoUrl;
+        <!-- Error / Success Box -->
+        <div id="message-box" class="hidden mb-4 p-3 text-sm rounded-lg border"></div>
+
+        <!-- Auth Form -->
+        <form id="auth-form" class="space-y-4">
+            <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">Email address</label>
+                <input type="email" id="email" required 
+                    class="w-full px-4 py-2.5 bg-gray-950 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600 text-sm"
+                    placeholder="name@example.com">
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">Password</label>
+                <input type="password" id="password" required 
+                    class="w-full px-4 py-2.5 bg-gray-950 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600 text-sm"
+                    placeholder="••••••••">
+            </div>
+
+            <div id="signin-options" class="flex items-center justify-between text-xs text-gray-400">
+                <label class="flex items-center">
+                    <input type="checkbox" class="rounded bg-gray-950 border-gray-700 text-red-600 focus:ring-0 mr-1.5">
+                    Remember Me
+                </label>
+                <a href="#" class="text-red-500 hover:underline">Forgot password?</a>
+            </div>
+
+            <button type="submit" id="submit-btn"
+                class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 text-sm shadow-md">
+                Sign In
+            </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="relative flex py-4 items-center">
+            <div class="flex-grow border-t border-gray-800"></div>
+            <span class="flex-shrink mx-4 text-gray-500 text-[10px] uppercase tracking-wider">OR</span>
+            <div class="flex-grow border-t border-gray-800"></div>
+        </div>
+
+        <!-- Google Sign-In Button -->
+        <button id="google-login-btn" 
+            class="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition duration-200 flex items-center justify-center space-x-2 text-sm shadow-md">
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                <path d="M12.24 10.285V14.2h6.806c-.275 1.765-2.056 5.174-6.806 5.174-4.095 0-7.439-3.389-7.439-7.574s3.344-7.574 7.439-7.574c2.33 0 3.891.989 4.785 1.849l3.254-3.138C18.189 1.186 15.479 0 12.24 0 5.48 0 0 5.48 0 12.24s5.48 12.24 12.24 12.24c7.057 0 11.733-4.962 11.733-11.969 0-.829-.082-1.462-.18-2.226H12.24z"/>
+            </svg>
+            <span>Sign in with Google</span>
+        </button>
+
+        <!-- Footer / Copyright -->
+        <div class="text-center mt-6 text-[11px] text-gray-500">
+            <p>Copyright © ZK Voice Hub. All rights reserved.</p>
+            <div class="mt-1 space-x-1">
+                <a href="#" class="hover:underline">Terms</a><span>|</span>
+                <a href="#" class="hover:underline">Copyright Policy</a><span>|</span>
+                <a href="#" class="hover:underline">Abuse Report</a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Supabase Logic & Animation Script -->
+    <script>
+        const SUPABASE_URL = 'https://nveowfitvoligqecxofr.supabase.co';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // <--- Yahan apni Supabase ki anon public key paste kar dena bhai
+        
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentMode = 'signin'; // 'signin' or 'signup'
+
+        function switchTab(mode) {
+            currentMode = mode;
+            const signinBtn = document.getElementById('tab-signin');
+            const signupBtn = document.getElementById('tab-signup');
+            const title = document.getElementById('form-title');
+            const subtitle = document.getElementById('form-subtitle');
+            const submitBtn = document.getElementById('submit-btn');
+            const signinOptions = document.getElementById('signin-options');
             
-            document.getElementById('homeView').classList.remove('active');
-            document.getElementById('adminView').classList.remove('active');
-            document.getElementById('watchView').classList.add('active');
-        }
+            hideMessage();
 
-        function addNewAnime() {
-            const title = document.getElementById('adminTitle').value.trim();
-            const image = document.getElementById('adminImage').value.trim();
-            const videoUrl = document.getElementById('adminVideoUrl').value.trim();
-
-            if (!title || !videoUrl) {
-                alert("Please enter Anime Title and Video Embed URL!");
-                return;
+            if (mode === 'signin') {
+                signinBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-red-600 text-white shadow-md";
+                signupBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all text-gray-400 hover:text-white";
+                title.textContent = "Welcome Back";
+                subtitle.textContent = "Sign in to your ZK Voice Hub account";
+                submitBtn.textContent = "Sign In";
+                signinOptions.classList.remove('hidden');
+            } else {
+                signupBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-red-600 text-white shadow-md";
+                signinBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all text-gray-400 hover:text-white";
+                title.textContent = "Create Account";
+                subtitle.textContent = "Join ZK Voice Hub to stream anime";
+                submitBtn.textContent = "Sign Up";
+                signinOptions.classList.add('hidden');
             }
+        }
 
-            animeData.unshift({
-                id: animeData.length + 1,
-                title: title,
-                badge: "Hindi Dub",
-                image: image || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&auto=format&fit=crop&q=60',
-                videoUrl: videoUrl
+        // Google Login
+        document.getElementById('google-login-btn').addEventListener('click', async () => {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin }
             });
+            if (error) showMessage(error.message, 'error');
+        });
 
-            alert("Anime published successfully!");
-            document.getElementById('adminTitle').value = '';
-            document.getElementById('adminImage').value = '';
-            document.getElementById('adminVideoUrl').value = '';
-            showHome();
-            renderAnimeGrid();
+        // Form Submit Handler (Sign In / Sign Up)
+        document.getElementById('auth-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (currentMode === 'signin') {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) {
+                    showMessage(error.message, 'error');
+                } else {
+                    handleRedirect(data.user?.email);
+                }
+            } else {
+                const { data, error } = await supabase.auth.signUp({ email, password });
+                if (error) {
+                    showMessage(error.message, 'error');
+                } else {
+                    showMessage('Sign up successful! Please check your email or log in.', 'success');
+                }
+            }
+        });
+
+        // Check Admin & Redirect
+        async function checkUserAndRedirect() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                handleRedirect(session.user.email);
+            }
         }
 
-        function showHome() {
-            document.getElementById('adminView').classList.remove('active');
-            document.getElementById('watchView').classList.remove('active');
-            document.getElementById('homeView').classList.add('active');
-            document.getElementById('videoIframe').src = '';
+        function handleRedirect(email) {
+            if (email === 'atrinandansarkate@gmail.com' || email === 'zkdubbingstudio@gmail.com') {
+                window.location.href = '/admin.html'; // Admin Panel
+            } else {
+                window.location.href = '/index.html'; // Home / Streaming Page
+            }
         }
 
-        function showAdminPanel() {
-            document.getElementById('homeView').classList.remove('active');
-            document.getElementById('watchView').classList.remove('active');
-            document.getElementById('adminView').classList.add('active');
+        function showMessage(text, type) {
+            const box = document.getElementById('message-box');
+            box.textContent = text;
+            box.className = `mb-4 p-3 text-sm rounded-lg border ${type === 'error' ? 'bg-red-950 border-red-800 text-red-200' : 'bg-green-950 border-green-800 text-green-200'}`;
+            box.classList.remove('hidden');
         }
+
+        function hideMessage() {
+            document.getElementById('message-box').classList.add('hidden');
+        }
+
+        // Check session on page load
+        checkUserAndRedirect();
     </script>
 </body>
 </html>
