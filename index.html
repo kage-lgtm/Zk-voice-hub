@@ -15,8 +15,8 @@
         
         <!-- Tab Switcher (Sign In / Sign Up) -->
         <div class="flex bg-gray-950 p-1 rounded-xl mb-6 border border-gray-800">
-            <button type="button" id="tab-signin" onclick="switchMode('signin')" class="flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-red-600 text-white shadow-md cursor-pointer">Sign In</button>
-            <button type="button" id="tab-signup" onclick="switchMode('signup')" class="flex-1 py-2 text-sm font-medium rounded-lg transition-all text-gray-400 hover:text-white cursor-pointer">Sign Up</button>
+            <button type="button" id="tab-signin" class="flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-red-600 text-white shadow-md cursor-pointer">Sign In</button>
+            <button type="button" id="tab-signup" class="flex-1 py-2 text-sm font-medium rounded-lg transition-all text-gray-400 hover:text-white cursor-pointer">Sign Up</button>
         </div>
 
         <!-- Header -->
@@ -46,10 +46,10 @@
 
             <div id="signin-options" class="flex items-center justify-between text-xs text-gray-400">
                 <label class="flex items-center cursor-pointer">
-                    <input type="checkbox" class="rounded bg-gray-950 border-gray-700 text-red-600 focus:ring-0 mr-1.5">
+                    <input type="checkbox" id="remember-me" class="rounded bg-gray-950 border-gray-700 text-red-600 focus:ring-0 mr-1.5">
                     Remember Me
                 </label>
-                <a href="#" id="forgot-link" onclick="handleForgotPassword(event)" class="text-red-500 hover:underline cursor-pointer">Forgot password?</a>
+                <a href="#forgot" id="forgot-link" class="text-red-500 hover:underline cursor-pointer">Forgot password?</a>
             </div>
 
             <button type="submit" id="submit-btn"
@@ -66,7 +66,7 @@
         </div>
 
         <!-- Google Sign-In Button -->
-        <button type="button" id="google-login-btn" onclick="handleGoogleLogin()"
+        <button type="button" id="google-login-btn" 
             class="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition duration-200 flex items-center justify-center space-x-2 text-sm shadow-md cursor-pointer">
             <svg class="w-4 h-4 fill-current pointer-events-none" viewBox="0 0 24 24">
                 <path d="M12.24 10.285V14.2h6.806c-.275 1.765-2.056 5.174-6.806 5.174-4.095 0-7.439-3.389-7.439-7.574s3.344-7.574 7.439-7.574c2.33 0 3.891.989 4.785 1.849l3.254-3.138C18.189 1.186 15.479 0 12.24 0 5.48 0 0 5.48 0 12.24s5.48 12.24 12.24 12.24c7.057 0 11.733-4.962 11.733-11.969 0-.829-.082-1.462-.18-2.226H12.24z"/>
@@ -86,95 +86,127 @@
 
     </div>
 
-    <!-- Supabase Logic Script -->
+    <!-- Safe Script Initialization -->
     <script>
         const SUPABASE_URL = 'https://nveowfitvoligqecxofr.supabase.co';
         const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // <--- Yahan apni Supabase anon key paste kar dena
-        
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let supabase = null;
+        try {
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (err) {
+            console.error("Supabase init error:", err);
+        }
 
         let currentMode = 'signin';
 
-        function switchMode(mode) {
-            currentMode = mode;
-            const signinBtn = document.getElementById('tab-signin');
-            const signupBtn = document.getElementById('tab-signup');
-            const title = document.getElementById('form-title');
-            const subtitle = document.getElementById('form-subtitle');
-            const submitBtn = document.getElementById('submit-btn');
-            const signinOptions = document.getElementById('signin-options');
-            
-            hideMessage();
+        const signinTab = document.getElementById('tab-signin');
+        const signupTab = document.getElementById('tab-signup');
+        const title = document.getElementById('form-title');
+        const subtitle = document.getElementById('form-subtitle');
+        const submitBtn = document.getElementById('submit-btn');
+        const signinOptions = document.getElementById('signin-options');
 
-            if (mode === 'signin') {
-                signinBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-red-600 text-white shadow-md cursor-pointer";
-                signupBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all text-gray-400 hover:text-white cursor-pointer";
+        // Tab Switchers
+        if (signinTab && signupTab) {
+            signinTab.addEventListener('click', () => {
+                currentMode = 'signin';
+                signinTab.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-red-600 text-white shadow-md cursor-pointer";
+                signupTab.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all text-gray-400 hover:text-white cursor-pointer";
                 title.textContent = "Welcome Back";
                 subtitle.textContent = "Sign in to your ZK Voice Hub account";
                 submitBtn.textContent = "Sign In";
-                signinOptions.classList.remove('hidden');
-            } else {
-                signupBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-red-600 text-white shadow-md cursor-pointer";
-                signinBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all text-gray-400 hover:text-white cursor-pointer";
+                if(signinOptions) signinOptions.classList.remove('hidden');
+                hideMessage();
+            });
+
+            signupTab.addEventListener('click', () => {
+                currentMode = 'signup';
+                signupTab.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-red-600 text-white shadow-md cursor-pointer";
+                signinTab.className = "flex-1 py-2 text-sm font-medium rounded-lg transition-all text-gray-400 hover:text-white cursor-pointer";
                 title.textContent = "Create Account";
                 subtitle.textContent = "Join ZK Voice Hub to stream anime";
                 submitBtn.textContent = "Sign Up";
-                signinOptions.classList.add('hidden');
-            }
-        }
-
-        async function handleGoogleLogin() {
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.origin }
+                if(signinOptions) signinOptions.classList.add('hidden');
+                hideMessage();
             });
-            if (error) showMessage(error.message, 'error');
         }
 
-        async function handleForgotPassword(e) {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            if (!email) {
-                showMessage('Please enter your email address first.', 'error');
-                return;
-            }
-            const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.origin
+        // Google Login Button
+        const googleBtn = document.getElementById('google-login-btn');
+        if (googleBtn) {
+            googleBtn.addEventListener('click', async () => {
+                if (!supabase) {
+                    showMessage('Supabase client not initialized. Check your API key.', 'error');
+                    return;
+                }
+                try {
+                    const { data, error } = await supabase.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: { redirectTo: window.location.origin }
+                    });
+                    if (error) showMessage(error.message, 'error');
+                } catch (e) {
+                    showMessage('Google Sign-In failed: ' + e.message, 'error');
+                }
             });
-            if (error) {
-                showMessage(error.message, 'error');
-            } else {
-                showMessage('Password reset link sent to your email!', 'success');
-            }
         }
 
-        document.getElementById('auth-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            if (currentMode === 'signin') {
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        // Forgot Password Link
+        const forgotLink = document.getElementById('forgot-link');
+        if (forgotLink) {
+            forgotLink.addEventListener('click', async (e) => {
+                e.preventDefault();
+                if (!supabase) {
+                    showMessage('Supabase client not initialized.', 'error');
+                    return;
+                }
+                const email = document.getElementById('email').value;
+                if (!email) {
+                    showMessage('Please enter your email address first.', 'error');
+                    return;
+                }
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin
+                });
                 if (error) {
                     showMessage(error.message, 'error');
                 } else {
-                    handleRedirect(data.user?.email);
+                    showMessage('Password reset link sent to your email!', 'success');
                 }
-            } else {
-                const { data, error } = await supabase.auth.signUp({ email, password });
-                if (error) {
-                    showMessage(error.message, 'error');
-                } else {
-                    showMessage('Sign up successful! Please check your email to confirm.', 'success');
-                }
-            }
-        });
+            });
+        }
 
-        async function checkUserAndRedirect() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                handleRedirect(session.user.email);
-            }
+        // Form Submit Handler
+        const authForm = document.getElementById('auth-form');
+        if (authForm) {
+            authForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!supabase) {
+                    showMessage('Supabase client not initialized.', 'error');
+                    return;
+                }
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                if (currentMode === 'signin') {
+                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                    if (error) {
+                        showMessage(error.message, 'error');
+                    } else {
+                        handleRedirect(data.user?.email);
+                    }
+                } else {
+                    const { data, error } = await supabase.auth.signUp({ email, password });
+                    if (error) {
+                        showMessage(error.message, 'error');
+                    } else {
+                        showMessage('Sign up successful! Please check your email to confirm.', 'success');
+                    }
+                }
+            });
         }
 
         function handleRedirect(email) {
@@ -187,16 +219,16 @@
 
         function showMessage(text, type) {
             const box = document.getElementById('message-box');
+            if (!box) return;
             box.textContent = text;
             box.className = `mb-4 p-3 text-sm rounded-lg border ${type === 'error' ? 'bg-red-950 border-red-800 text-red-200' : 'bg-green-950 border-green-800 text-green-200'}`;
             box.classList.remove('hidden');
         }
 
         function hideMessage() {
-            document.getElementById('message-box').classList.add('hidden');
+            const box = document.getElementById('message-box');
+            if (box) box.classList.add('hidden');
         }
-
-        checkUserAndRedirect();
     </script>
 </body>
 </html>
